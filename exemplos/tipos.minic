@@ -1,0 +1,6 @@
+// float + int promove para float
+float preco;
+int qtd;
+preco = 10.5;
+qtd = 2;
+print(preco * qtd);

@@ -1,0 +1,5 @@
+// Precedencia: * antes de +
+// A arvore deve colocar (3 * 4) abaixo do +
+int x;
+x = 2 + 3 * 4;
+print(x);

@@ -1,0 +1,9 @@
+// Calcula a media de dois numeros
+int a;
+int b;
+float media;
+
+read(a);
+read(b);
+media = (a + b) / 2;
+print(media);

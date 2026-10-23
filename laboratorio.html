@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MiniC · Laboratório das três fases</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --card: #fff;
+    --ink: #1a1f2a;
+    --muted: #5c6575;
+    --line: #d8dde6;
+    --accent: #1a5fb4;
+    --accent-soft: #e8f0fb;
+    --lex: #0d7377;
+    --sin: #b35c00;
+    --sem: #6b3fa0;
+    --mono: "Cascadia Code", "Fira Code", Consolas, monospace;
+    --sans: "Segoe UI", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.55 var(--sans);
+  }
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 1.5rem 1.2rem 3rem;
+  }
+  h1 {
+    font-size: 1.55rem;
+    margin: 0 0 .35rem;
+    letter-spacing: -.02em;
+  }
+  .lede {
+    color: var(--muted);
+    margin: 0 0 1.4rem;
+    max-width: 58ch;
+  }
+  .painel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1rem;
+  }
+  .painel h2 {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--muted);
+    margin: 0 0 .7rem;
+    font-weight: 600;
+  }
+  .fontes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .45rem;
+  }
+  .fontes button {
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    border-radius: 7px;
+    padding: .45rem .7rem;
+    font: 500 .88rem var(--sans);
+    cursor: pointer;
+  }
+  .fontes button:hover { border-color: var(--accent); color: var(--accent); }
+  .fontes button.ativa {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .dica-fonte {
+    margin: .75rem 0 0;
+    font-size: .9rem;
+    color: var(--muted);
+  }
+  #fonte {
+    width: 100%;
+    min-height: 11rem;
+    margin-top: .75rem;
+    font: 14px/1.45 var(--mono);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: .75rem .85rem;
+    resize: vertical;
+    background: #fafbfc;
+    color: var(--ink);
+  }
+  .acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+    align-items: center;
+    margin-top: .85rem;
+  }
+  #executar {
+    background: var(--accent);
+    color: #fff;
+    border: 0;
+    border-radius: 8px;
+    padding: .55rem 1.1rem;
+    font: 600 .95rem var(--sans);
+    cursor: pointer;
+  }
+  #executar:hover { filter: brightness(1.06); }
+  .hint-run { font-size: .85rem; color: var(--muted); }
+
+  .fase { display: none; }
+  .fase.visivel { display: block; }
+  .fase-cabeca {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem .8rem;
+    align-items: baseline;
+    margin-bottom: .55rem;
+  }
+  .fase-cabeca h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    text-transform: none;
+    letter-spacing: -.01em;
+    color: var(--ink);
+  }
+  .chip {
+    font: 500 .72rem var(--mono);
+    padding: .2rem .45rem;
+    border-radius: 5px;
+    background: var(--bg);
+    color: var(--muted);
+  }
+  .fase.lex .chip { background: #e0f4f4; color: var(--lex); }
+  .fase.sin .chip { background: #fff0e0; color: var(--sin); }
+  .fase.sem .chip { background: #f0e8fa; color: var(--sem); }
+  .explica {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: .7rem .85rem;
+    margin: 0 0 .75rem;
+    font-size: .92rem;
+    max-width: none;
+  }
+  .explica strong { color: var(--accent); }
+  .io {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    align-items: center;
+    font: 500 .78rem var(--mono);
+    color: var(--muted);
+    margin-bottom: .65rem;
+  }
+  .io span {
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: .2rem .45rem;
+    color: var(--ink);
+  }
+  .io i { font-style: normal; color: var(--accent); }
+  pre.saida {
+    margin: 0;
+    padding: .75rem .85rem;
+    background: #0f141c;
+    color: #e4e9f2;
+    border-radius: 8px;
+    overflow-x: auto;
+    font: 13px/1.5 var(--mono);
+    white-space: pre-wrap;
+  }
+  .tokens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .35rem;
+  }
+  .tk {
+    font: 500 .78rem var(--mono);
+    padding: .25rem .4rem;
+    border-radius: 5px;
+    background: #e8f0fb;
+    color: #16356a;
+  }
+  .tk.palavra { background: #d6f0e5; color: #0f5c40; }
+  .tk.num { background: #fdebd0; color: #7a4500; }
+  .tk.sim { background: #eee; color: #444; }
+  .tk.eof { background: #e8e8e8; color: #777; }
+  table.sim {
+    border-collapse: collapse;
+    font: 14px var(--mono);
+    width: auto;
+  }
+  table.sim th, table.sim td {
+    border: 1px solid var(--line);
+    padding: .4rem .75rem;
+    text-align: left;
+  }
+  table.sim th { background: var(--bg); font-weight: 600; }
+  .vazio {
+    color: var(--muted);
+    font-size: .92rem;
+    margin: 0;
+  }
+  footer {
+    margin-top: 1.5rem;
+    font-size: .82rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>MiniC · Laboratório das três fases</h1>
+  <p class="lede">
+    Escolha uma fonte, clique em <b>Executar</b> e observe o que cada fase
+    produz. Léxico = Tipo&nbsp;3 (AFD). Sintático = Tipo&nbsp;2 (GLC). Semântico = Tipo&nbsp;1 (tabela).
+  </p>
+
+  <section class="painel">
+    <h2>1 · Escolha a fonte</h2>
+    <div class="fontes" id="fontes"></div>
+    <p class="dica-fonte" id="dica"></p>
+    <textarea id="fonte" spellcheck="false"></textarea>
+    <div class="acoes">
+      <button type="button" id="executar">Executar fases</button>
+      <span class="hint-run">Pode editar a fonte antes de executar.</span>
+    </div>
+  </section>
+
+  <section class="painel fase lex" id="fase-lex">
+    <div class="fase-cabeca">
+      <h2>Fase 1 · Análise léxica</h2>
+      <span class="chip">Tipo 3 · Regular · AFD</span>
+    </div>
+    <div class="io"><span>cadeia de caracteres</span><i>→</i><span>tokens</span></div>
+    <p class="explica" id="explica-lex"></p>
+    <div id="out-lex"></div>
+  </section>
+
+  <section class="painel fase sin" id="fase-sin">
+    <div class="fase-cabeca">
+      <h2>Fase 2 · Análise sintática</h2>
+      <span class="chip">Tipo 2 · Livre de contexto · LL(1)</span>
+    </div>
+    <div class="io"><span>tokens</span><i>→</i><span>árvore sintática (AST)</span></div>
+    <p class="explica" id="explica-sin"></p>
+    <pre class="saida" id="out-sin"></pre>
+  </section>
+
+  <section class="painel fase sem" id="fase-sem">
+    <div class="fase-cabeca">
+      <h2>Fase 3 · Análise semântica</h2>
+      <span class="chip">Tipo 1 · Sensível ao contexto · Tabela</span>
+    </div>
+    <div class="io"><span>AST</span><i>→</i><span>tabela de símbolos + tipos</span></div>
+    <p class="explica" id="explica-sem"></p>
+    <div id="out-sem"></div>
+  </section>
+
+  <footer>
+    Mesma lógica de <code>lexer.py</code>, <code>parser.py</code> e <code>semantico.py</code>.
+    Abra este arquivo no navegador — não precisa de servidor.
+  </footer>
+</main>
+
+<script>
+/* ========== 5 fontes didáticas ========== */
+const FONTES = [
+  {
+    id: "media",
+    titulo: "1. Média",
+    dica: "Fluxo completo: declarações, read, expressão com parênteses e print.",
+    codigo:
+`// Calcula a media de dois numeros
+int a;
+int b;
+float media;
+
+read(a);
+read(b);
+media = (a + b) / 2;
+print(media);`
+  },
+  {
+    id: "expressao",
+    titulo: "2. Precedência",
+    dica: "Veja na AST: 3*4 fica abaixo do +. A precedência nasce da gramática.",
+    codigo:
+`// * tem precedencia sobre +
+int x;
+x = 2 + 3 * 4;
+print(x);`
+  },
+  {
+    id: "tipos",
+    titulo: "3. Tipos",
+    dica: "NUM_REAL (10.5) e promoção int/float na tabela de símbolos.",
+    codigo:
+`// float e int na mesma expressao
+float preco;
+int qtd;
+preco = 10.5;
+qtd = 2;
+print(preco * qtd);`
+  },
+  {
+    id: "parenteses",
+    titulo: "4. Parênteses",
+    dica: "Parênteses forçam a ordem: a soma fica dentro, depois a multiplicação.",
+    codigo:
+`// Parenteses mudam a arvore
+int r;
+r = (2 + 3) * 4;
+print(r);`
+  },
+  {
+    id: "simples",
+    titulo: "5. Declaração",
+    dica: "Programa mínimo: só declaração com inicialização. Bom para contar tokens à mão.",
+    codigo:
+`// Programa minimo
+int n = 42;
+print(n);`
+  }
+];
+
+/* ========== Léxico (AFD) ========== */
+const PALAVRAS = new Set(["int", "float", "print", "read"]);
+const SIMBOLOS = {
+  "+": "OP_SOMA", "-": "OP_SUB", "*": "OP_MULT", "/": "OP_DIV",
+  "=": "ATRIB", "(": "ABRE_PAR", ")": "FECHA_PAR", ";": "PONTO_VIRG"
+};
+const DELTA = {
+  q0:  { letra: "ID",  digito: "INT" },
+  ID:  { letra: "ID",  digito: "ID" },
+  INT: { digito: "INT", ponto: "DOT" },
+  DOT: { digito: "FLT" },
+  FLT: { digito: "FLT" }
+};
+const FINAIS = { ID: "ID", INT: "NUM_INT", FLT: "NUM_REAL" };
+
+function classe(c) {
+  if (/[A-Za-z_]/.test(c)) return "letra";
+  if (/[0-9]/.test(c)) return "digito";
+  if (c === ".") return "ponto";
+  return "outro";
+}
+function passo(estado, c) {
+  const m = DELTA[estado];
+  return m ? m[classe(c)] || null : null;
+}
+
+function lex(fonte) {
+  const tokens = [];
+  let i = 0;
+  while (i < fonte.length) {
+    const c = fonte[i];
+    if (/\s/.test(c)) { i++; continue; }
+    if (c === "/" && fonte[i + 1] === "/") {
+      while (i < fonte.length && fonte[i] !== "\n") i++;
+      continue;
+    }
+    if (SIMBOLOS[c]) {
+      tokens.push({ tipo: SIMBOLOS[c], lexema: c });
+      i++;
+      continue;
+    }
+    let estado = "q0", j = i, ultimo = null, fim = i;
+    while (j < fonte.length) {
+      const prox = passo(estado, fonte[j]);
+      if (!prox) break;
+      estado = prox; j++;
+      if (FINAIS[estado]) { ultimo = estado; fim = j; }
+    }
+    const lexema = fonte.slice(i, fim);
+    let tipo = FINAIS[ultimo];
+    if (tipo === "ID" && PALAVRAS.has(lexema)) tipo = "PALAVRA";
+    tokens.push({ tipo, lexema });
+    i = fim;
+  }
+  tokens.push({ tipo: "EOF", lexema: "" });
+  return tokens;
+}
+
+/* ========== Parser LL(1) ========== */
+function parse(tokens) {
+  let p = 0;
+  const olha = () => tokens[p];
+  const avanca = () => tokens[p++];
+
+  function fator() {
+    const t = olha();
+    if (t.tipo === "NUM_INT" || t.tipo === "NUM_REAL") {
+      avanca();
+      return { k: "Num", v: t.lexema, fl: t.tipo === "NUM_REAL" };
+    }
+    if (t.tipo === "ID") { avanca(); return { k: "Var", name: t.lexema }; }
+    if (t.tipo === "ABRE_PAR") {
+      avanca();
+      const e = expr();
+      avanca();
+      return e;
+    }
+  }
+  function termo() {
+    let esq = fator();
+    while (olha().tipo === "OP_MULT" || olha().tipo === "OP_DIV") {
+      const op = avanca().lexema;
+      esq = { k: "Bin", op, l: esq, r: fator() };
+    }
+    return esq;
+  }
+  function expr() {
+    let esq = termo();
+    while (olha().tipo === "OP_SOMA" || olha().tipo === "OP_SUB") {
+      const op = avanca().lexema;
+      esq = { k: "Bin", op, l: esq, r: termo() };
+    }
+    return esq;
+  }
+  function comando() {
+    const t = olha();
+    if (t.tipo === "PALAVRA" && (t.lexema === "int" || t.lexema === "float")) {
+      avanca();
+      const id = avanca();
+      let init = null;
+      if (olha().tipo === "ATRIB") { avanca(); init = expr(); }
+      avanca();
+      return { k: "Decl", vtype: t.lexema, name: id.lexema, init };
+    }
+    if (t.tipo === "PALAVRA" && t.lexema === "print") {
+      avanca(); avanca();
+      const e = expr();
+      avanca(); avanca();
+      return { k: "Print", e };
+    }
+    if (t.tipo === "PALAVRA" && t.lexema === "read") {
+      avanca(); avanca();
+      const id = avanca();
+      avanca(); avanca();
+      return { k: "Read", name: id.lexema };
+    }
+    if (t.tipo === "ID") {
+      const nome = avanca().lexema;
+      avanca();
+      const e = expr();
+      avanca();
+      return { k: "Assign", name: nome, e };
+    }
+  }
+  const body = [];
+  while (olha().tipo !== "EOF") body.push(comando());
+  return { k: "Program", body };
+}
+
+function linhasArvore(no) {
+  if (no.k === "Program") {
+    const out = ["Program"];
+    no.body.forEach((c, i) => anexa(out, linhasArvore(c), i === no.body.length - 1));
+    return out;
+  }
+  if (no.k === "Decl") {
+    const out = [`Decl ${no.vtype} ${no.name}`];
+    if (no.init) anexa(out, linhasArvore(no.init), true);
+    return out;
+  }
+  if (no.k === "Assign") {
+    const out = [`Assign ${no.name}`];
+    anexa(out, linhasArvore(no.e), true);
+    return out;
+  }
+  if (no.k === "Print") {
+    const out = ["Print"];
+    anexa(out, linhasArvore(no.e), true);
+    return out;
+  }
+  if (no.k === "Read") return [`Read ${no.name}`];
+  if (no.k === "Num") return [`Num ${no.v}`];
+  if (no.k === "Var") return [`Var ${no.name}`];
+  if (no.k === "Bin") {
+    const out = [`Bin ${no.op}`];
+    anexa(out, linhasArvore(no.l), false);
+    anexa(out, linhasArvore(no.r), true);
+    return out;
+  }
+  return [String(no)];
+}
+function anexa(dest, filhos, ultimo) {
+  const ramo = ultimo ? "`-- " : "|-- ";
+  const cont = ultimo ? "    " : "|   ";
+  dest.push(ramo + filhos[0]);
+  for (let i = 1; i < filhos.length; i++) dest.push(cont + filhos[i]);
+}
+
+/* ========== Semântico ========== */
+function semantico(ast) {
+  const tabela = {};
+  const tiposExpr = [];
+
+  function tipoDe(no) {
+    if (no.k === "Num") {
+      const t = no.fl ? "float" : "int";
+      tiposExpr.push(`${no.v} → ${t}`);
+      return t;
+    }
+    if (no.k === "Var") return tabela[no.name];
+    if (no.k === "Bin") {
+      const a = tipoDe(no.l), b = tipoDe(no.r);
+      const t = (a === "float" || b === "float") ? "float" : "int";
+      tiposExpr.push(`(${a} ${no.op} ${b}) → ${t}`);
+      return t;
+    }
+  }
+
+  for (const s of ast.body) {
+    if (s.k === "Decl") {
+      if (s.init) tipoDe(s.init);
+      tabela[s.name] = s.vtype;
+    } else if (s.k === "Assign") {
+      tipoDe(s.e);
+      void tabela[s.name];
+    } else if (s.k === "Read") {
+      void tabela[s.name];
+    } else if (s.k === "Print") {
+      tipoDe(s.e);
+    }
+  }
+  return { tabela, tiposExpr };
+}
+
+/* ========== Explicações contextuais ========== */
+function explicaLex(tokens, id) {
+  const n = tokens.filter(t => t.tipo !== "EOF").length;
+  const base =
+    `O scanner varreu a fonte com um <strong>AFD</strong> (linguagem regular). ` +
+    `Espaços e comentários <code>//</code> foram descartados. ` +
+    `Resultado: <strong>${n} tokens</strong> + EOF.`;
+  const extras = {
+    media: " Observe <code>int</code>/<code>read</code>/<code>print</code>/<code>float</code>: casam com ID no AFD e viram <code>PALAVRA</code> pela tabela de reservadas.",
+    expressao: " Números e operadores saem um a um; a ordem <code>2 + 3 * 4</code> ainda é plana — a árvore virá na fase 2.",
+    tipos: " <code>10.5</code> percorreu INT → DOT → FLT e saiu como <code>NUM_REAL</code> (maior casamento).",
+    parenteses: " <code>(</code> e <code>)</code> são símbolos de um caractere; o AFD não precisa “lembrar” o par — isso é trabalho do parser.",
+    simples: " Poucos tokens: bom exercício para marcar à mão qual estado final emitiu cada um."
+  };
+  return base + (extras[id] || "");
+}
+
+function explicaSin(ast, id) {
+  const base =
+    `O parser <strong>LL(1)</strong> (descida recursiva) verificou a gramática livre de contexto e montou a AST. ` +
+    `Cada não-terminal virou uma função; a precedência de <code>*</code>/<code>/</code> sobre <code>+</code>/<code>-</code> aparece na profundidade da árvore.`;
+  const extras = {
+    expressao: " Aqui <code>Bin *</code> é filho de <code>Bin +</code>: por isso 3×4 acontece antes da soma.",
+    parenteses: " Com parênteses, <code>Bin +</code> fica por baixo e <code>Bin *</code> fica na raiz da expressão — o oposto do exemplo de precedência.",
+    media: " A expressão da média tem parênteses e divisão: a árvore espelha <code>(a+b)/2</code>.",
+    tipos: " A atribuição e o <code>print</code> carregam subárvores de expressão simples.",
+    simples: " Árvore pequena: Decl com inicialização + Print."
+  };
+  return base + (extras[id] || "");
+}
+
+function explicaSem(tab, tiposExpr, id) {
+  const nomes = Object.keys(tab);
+  const base =
+    `A GLC sozinha não garante que o nome usado seja o declarado (contexto). ` +
+    `A <strong>tabela de símbolos</strong> guarda nome → tipo. ` +
+    `Tipos de expressões sobem como atributos sintetizados` +
+    (tiposExpr.length ? ` (ex.: ${tiposExpr.slice(-1)[0]})` : "") + `.`;
+  const extras = {
+    tipos: " <code>preco</code> é float e <code>qtd</code> é int: a multiplicação promove para float.",
+    media: " Três variáveis na tabela; <code>media</code> é float embora a divisão use operandos int na expressão intermediária anotada.",
+    expressao: " Só <code>x:int</code> — a expressão usa literais, sem consulta extra de nomes.",
+    parenteses: " Mesma ideia: um identificador e tipos derivados dos literais.",
+    simples: " Uma entrada na tabela: <code>n → int</code>."
+  };
+  return base + (extras[id] || "") +
+    (nomes.length ? ` Entradas: <strong>${nomes.join(", ")}</strong>.` : "");
+}
+
+/* ========== UI ========== */
+const fontesEl = document.getElementById("fontes");
+const fonteEl = document.getElementById("fonte");
+const dicaEl = document.getElementById("dica");
+let fonteAtual = FONTES[0].id;
+
+FONTES.forEach((f, i) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = f.titulo;
+  if (i === 0) b.classList.add("ativa");
+  b.addEventListener("click", () => selecionar(f.id, b));
+  fontesEl.appendChild(b);
+});
+
+function selecionar(id, btn) {
+  fonteAtual = id;
+  const f = FONTES.find(x => x.id === id);
+  fonteEl.value = f.codigo;
+  dicaEl.textContent = f.dica;
+  document.querySelectorAll(".fontes button").forEach(b => b.classList.remove("ativa"));
+  btn.classList.add("ativa");
+  esconderFases();
+}
+
+function esconderFases() {
+  ["fase-lex", "fase-sin", "fase-sem"].forEach(id => {
+    document.getElementById(id).classList.remove("visivel");
+  });
+}
+
+selecionar(FONTES[0].id, fontesEl.querySelector("button"));
+
+function classeToken(t) {
+  if (t.tipo === "PALAVRA") return "palavra";
+  if (t.tipo === "NUM_INT" || t.tipo === "NUM_REAL") return "num";
+  if (t.tipo === "EOF") return "eof";
+  if (t.tipo === "ID") return "";
+  return "sim";
+}
+
+document.getElementById("executar").addEventListener("click", () => {
+  const codigo = fonteEl.value;
+  const tokens = lex(codigo);
+  const ast = parse(tokens);
+  const { tabela, tiposExpr } = semantico(ast);
+
+  document.getElementById("explica-lex").innerHTML = explicaLex(tokens, fonteAtual);
+  const box = document.createElement("div");
+  box.className = "tokens";
+  tokens.forEach(t => {
+    const span = document.createElement("span");
+    span.className = "tk " + classeToken(t);
+    span.textContent = t.tipo === "EOF" ? "EOF" : `${t.tipo} '${t.lexema}'`;
+    box.appendChild(span);
+  });
+  const outLex = document.getElementById("out-lex");
+  outLex.innerHTML = "";
+  outLex.appendChild(box);
+
+  document.getElementById("explica-sin").innerHTML = explicaSin(ast, fonteAtual);
+  document.getElementById("out-sin").textContent = linhasArvore(ast).join("\n");
+
+  document.getElementById("explica-sem").innerHTML = explicaSem(tabela, tiposExpr, fonteAtual);
+  const outSem = document.getElementById("out-sem");
+  outSem.innerHTML = "";
+  const nomes = Object.keys(tabela);
+  if (!nomes.length) {
+    outSem.innerHTML = '<p class="vazio">(tabela vazia)</p>';
+  } else {
+    const table = document.createElement("table");
+    table.className = "sim";
+    table.innerHTML = "<tr><th>nome</th><th>tipo</th></tr>" +
+      nomes.map(n => `<tr><td>${n}</td><td>${tabela[n]}</td></tr>`).join("");
+    outSem.appendChild(table);
+  }
+
+  ["fase-lex", "fase-sin", "fase-sem"].forEach(id => {
+    document.getElementById(id).classList.add("visivel");
+  });
+  document.getElementById("fase-lex").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+</script>
+</body>
+</html>
