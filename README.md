@@ -13,7 +13,7 @@ Não há recuperação de erros, otimização nem geração de máquina.
 
 ---
 
-## Comece por aqui (sala de aula)
+## Comece por aqui 
 
 Abra **`laboratorio.html`** no navegador (duplo clique — sem servidor, sem Python).
 
@@ -114,13 +114,13 @@ Saída: tokens → AST → tabela (ex.: `a:int`, `b:int`, `media:float`).
 
 ---
 
-## Roteiro sugerido (1 aula)
+## Roteiro
 
-### 1. Por que fases? (5 min)
+### 1. Por que fases? 
 
 No diagrama de *Anatomia de um Compilador*: cada fase usa a **classe de linguagem mais simples** que resolve o problema.
 
-### 2. Laboratório no navegador (20 min)
+### 2. Laboratório no navegador 
 
 Abra `laboratorio.html` com a turma.
 
@@ -132,7 +132,7 @@ Abra `laboratorio.html` com a turma.
 | 3. Tipos | Como `10.5` vira `NUM_REAL`? O que a tabela guarda? |
 | 1. Média | Percorra as três fases do programa completo |
 
-### 3. Código-fonte das fases (20 min)
+### 3. Código-fonte das fases 
 
 Com o laboratório ainda aberto, abra os `.py`:
 
@@ -142,7 +142,7 @@ Com o laboratório ainda aberto, abra os `.py`:
 
 **`semantico.py`** — tabela nome→tipo; `tipo_de` como atributo sintetizado; uso exige declaração (contexto).
 
-### 4. Fechamento (5 min)
+### 4. Fechamento 
 
 | Se o problema for… | Quem detecta? |
 |--------------------|---------------|
